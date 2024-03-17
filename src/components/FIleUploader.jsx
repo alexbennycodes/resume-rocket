@@ -23,7 +23,23 @@ const FileUpload = () => {
   }, [acceptedFiles]);
 
   const handleFile = async () => {
-    console.log(acceptedFiles);
+    const formData = new FormData();
+    formData.append("file", acceptedFiles[0]);
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert("File uploaded successfully");
+      } else {
+        console.log(response);
+        alert("Error uploading file");
+      }
+    } catch (error) {
+      alert(error);
+    }
   };
 
   return (
