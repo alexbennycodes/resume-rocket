@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 
@@ -18,6 +19,8 @@ const FileUpload = () => {
     maxFiles: 1,
   });
 
+  const router = useRouter();
+
   useEffect(() => {
     if (acceptedFiles.length > 0) handleFile();
   }, [acceptedFiles]);
@@ -30,12 +33,10 @@ const FileUpload = () => {
         method: "POST",
         body: formData,
       });
-
-      if (response.ok) {
-        alert("File uploaded successfully");
-      } else {
-        console.log(response);
-        alert("Error uploading file");
+      const { success, data } = await response.json();
+      if (success) {
+        localStorage.setItem("pdf_text", JSON.stringify(data));
+        router.push("/analyse");
       }
     } catch (error) {
       alert(error);

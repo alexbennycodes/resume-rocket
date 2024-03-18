@@ -1,15 +1,19 @@
+import { getArray } from "@/lib/getArray";
 import { scoreCriteria } from "@/lib/score";
 import { HfInference } from "@huggingface/inference";
 import { experimental_buildOpenAssistantPrompt } from "ai/prompts";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 const Hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const model = "mistralai/Mistral-7B-Instruct-v0.2";
 
-export async function GET() {
+export async function POST(req) {
   try {
-    const cookieStore = cookies();
-    const pdfText = cookieStore.get("pdfText")?.value;
+    const data = await req.json();
+    if (!data.pdf_text)
+      NextResponse.json({ message: "Data not found", status: 500 });
+
+    const pdfText = data.pdf_text;
 
     const base = {
       role: "user",
@@ -17,19 +21,23 @@ export async function GET() {
     };
 
     const goodResp = await Hf.textGeneration({
-      model: "google/gemma-7b-it",
+      model,
       inputs: experimental_buildOpenAssistantPrompt([
         base,
         {
           role: "user",
           content:
-            "This text contains the text for a resume. What are the good pointers of the this resume.",
+            "List out the good things about this resume. Only suggest the bad points no good pointers. Don't suggest any shortcomings just the positive points.",
         },
         {
           role: "user",
-          content:
-            "Don't suggest any shortcoming just the positive points, heading should be 'What's good'",
+          content: `Please ensure that the text below is properly formatted in markdown with appropriate indentation, spacing, and hierarchy. The heading should be in h2 tag and should read "What's good". Don't give the output in code block`,
         },
+        // {
+        //   role: "user",
+        //   content:
+        //     "the response should be in nicely formatted markdown format with proper indentation and spacing and correct hierarchy with heading as h2 tag `What's good`",
+        // },
       ]),
       parameters: {
         max_new_tokens: 1024,
@@ -41,13 +49,23 @@ export async function GET() {
     });
 
     const badResp = await Hf.textGeneration({
-      model: "google/gemma-7b-it",
+      model,
       inputs: experimental_buildOpenAssistantPrompt([
         base,
         {
           role: "user",
           content:
             "List out the shortcomings of this resume. Only suggest the bad points no good pointers. Explain what is issue with each point and suggest ways to make it better along with the each pointers.",
+        },
+        {
+          role: "user",
+          content:
+            "the response should be in nicely formatted markdown format with proper indentation and spacing and correct hierarchy with heading as 'Shortcomings'",
+        },
+        {
+          role: "user",
+          content:
+            "the response should be in nicely formatted markdown format with proper indentation and spacing and correct hierarchy with heading as 'Shortcomings'",
         },
       ]),
       parameters: {
@@ -60,7 +78,7 @@ export async function GET() {
     });
 
     const scoreResume = await Hf.textGeneration({
-      model: "mistralai/Mistral-7B-Instruct-v0.2",
+      model,
       inputs: experimental_buildOpenAssistantPrompt([
         base,
         {
@@ -69,7 +87,7 @@ export async function GET() {
         },
         {
           role: "user",
-          content: "just give the score, nothing else",
+          content: "just give the score",
         },
         {
           role: "user",
@@ -90,7 +108,7 @@ export async function GET() {
     });
 
     const jobs = await Hf.textGeneration({
-      model: "mistralai/Mistral-7B-Instruct-v0.2",
+      model,
       inputs: experimental_buildOpenAssistantPrompt([
         base,
         {
@@ -115,14 +133,18 @@ export async function GET() {
     return NextResponse.json({
       message: "Success",
       status: 201,
-      text: pdfText,
       goodPointers: goodResp.generated_text,
       badPointers: badResp.generated_text,
-      scoreResume: scoreResume.generated_text,
-      jobs: JSON.parse(jobs.generated_text),
+      scoreResume: scoreResume.generated_text.slice(0, 2),
+      jobs: getArray(jobs.generated_text),
+      model,
+      success: true,
     });
   } catch (error) {
-    console.log("Error occurred ", error);
-    return NextResponse.json({ Message: error, status: 500 });
+    console.log(error.message);
+    return NextResponse.json(
+      { message: error.message, status: 500, success: false },
+      { status: 500 }
+    );
   }
 }

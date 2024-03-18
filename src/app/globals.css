@@ -82,3 +82,33 @@
   pointer-events: none;
   animation: noise 1s steps(2) infinite;
 }
+
+.markdown-container {
+  @apply tracking-wide;
+}
+
+.markdown-container h2 {
+  @apply pb-2 text-2xl lg:text-3xl xl:text-3xl 2xl:text-3xl font-bold;
+}
+
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: #b91c1c #000000;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #b91c1c;
+  border-radius: 6px;
+  border: 0px solid #ffffff;
+}
