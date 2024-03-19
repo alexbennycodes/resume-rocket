@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={urbanist.className}>
         <Navbar />
-        <div className="bg-grid-white/[0.02] w-full h-screen fixed inset-0" />
+        <div className="bg-grid-black/[0.1] w-full h-screen fixed inset-0" />
         <div
           className="pointer-events-none fixed inset-x-0 transform-gpu overflow-hidden blur-3xl sm:-top-60"
           aria-hidden="true"

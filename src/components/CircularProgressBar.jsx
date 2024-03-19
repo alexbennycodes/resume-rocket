@@ -1,39 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-const CircularProgress = ({ size, strokeWidth, percentage, color }) => {
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    setProgress(percentage);
-  }, [percentage]);
-
-  const viewBox = `0 0 ${size} ${size}`;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * Math.PI * 2;
-  const dash = (progress * circumference) / 100;
-
+const CircularProgress = ({ strokeWidth, progress, r, cx, cy, size }) => {
+  const circumference = 2 * 3.14 * r;
+  const offset = circumference * ((100 - progress) / 100);
   return (
-    <svg width={size} height={size} viewBox={viewBox}>
-      <circle
-        fill="none"
-        stroke="#ccc"
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={`${strokeWidth}px`}
-      />
-      <circle
-        fill="none"
-        stroke={color}
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={`${strokeWidth}px`}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        strokeDasharray={[dash, circumference - dash]}
-        strokeLinecap="round"
-        style={{ transition: "all 0.5s" }}
-      />
-    </svg>
+    <div className="relative inline-block scale-150">
+      <div className="absolute flex flex-col justify-center w-full h-full text-center">
+        <div className="text-4xl font-semibold text-primary">{progress}</div>
+      </div>
+      <div className="-rotate-90">
+        <svg width={size} height={size}>
+          <circle
+            r={r}
+            cy={cy}
+            cx={cx}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeLinecap="round"
+            stroke="#aaa"
+            strokeDasharray="27 10 27 10 27 10 27 10 27 10 27 10 27 10 27 10 27 10 27 1000"
+          ></circle>
+          <circle
+            r={r}
+            cy={cy}
+            cx={cx}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            stroke-dasharray={circumference + "px"}
+            stroke-dashoffset={offset + "px"}
+            strokeLinecap="round"
+            stroke="#19e27a"
+          ></circle>
+        </svg>
+      </div>
+    </div>
   );
 };
 

@@ -2,25 +2,38 @@
 
 import CircularProgressBar from "@/components/CircularProgressBar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getProgressColor } from "@/lib/getProgressColor";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
-import useSWR from "swr";
 
-const fetcher = async (...args) => {
-  return fetch(
-    ...args,
-    {
-      method: "POST",
-      body: JSON.stringify({ pdf_text: localStorage?.getItem("pdf_text") }),
-    },
-    { cache: "no-store" }
-  ).then((res) => res.json());
-};
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 const Page = () => {
-  const { data, error, isLoading } = useSWR("/api/analyse", fetcher);
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/analyse", {
+          method: "POST",
+          body: JSON.stringify({ pdf_text: localStorage?.getItem("pdf_text") }),
+        });
+        if (!response.ok) throw new Error(response.statusText);
+        const json = await response.json();
+        setIsLoading(false);
+        setData(json);
+        setError(null);
+      } catch (error) {
+        setError(`${error} Could not Fetch Data `);
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   if (isLoading)
     return (
@@ -49,18 +62,17 @@ const Page = () => {
   return (
     <>
       <section className="relative bg-transparent p-4 pb-5  sm:px-6 sm:pt-6">
-        <h2 className="pb-2 text-3xl lg:text-4xl xl:text-5xl font-bold text-center mb-8">
+        <h2 className="pb-2 text-3xl lg:text-4xl font-bold text-center mb-8">
           Overall Score
         </h2>
         <div className="flex flex-col items-center justify-center p-2 px-8">
-          <h2 className="w-full bg-gradient-to-tr bg-clip-text pt-[15px] font-bold text-center text-8xl text-transparent from-primary to-yellow-500 absolute ">
-            {data.scoreResume}
-          </h2>
           <CircularProgressBar
-            percentage={data.scoreResume}
-            size={250}
-            strokeWidth={20}
-            color={getProgressColor(data.scoreResume)}
+            progress={data.scoreResume}
+            strokeWidth={6}
+            r="59"
+            cx="80"
+            cy="80"
+            size={160}
           />
         </div>
       </section>
@@ -87,7 +99,7 @@ const Page = () => {
             <Link
               href={`https://www.linkedin.com/jobs/search/?keywords=${job}`}
               target="_blank"
-              className="inline-flex items-center border rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-secondary hover:bg-secondary/80 border-transparent cursor-pointer bg-gradient-to-r from-red-900 to-red-700 py-1 px-2 text-white whitespace-nowrap"
+              className="inline-flex items-center border rounded-full text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-secondary hover:bg-secondary/80 cursor-pointer bg-gradient-to-r from-background to-primary/70 py-1 px-2 text-white whitespace-nowrap"
             >
               See {job} Jobs on Linkedin
               <ExternalLink className="h-4 w-4 ml-2" />

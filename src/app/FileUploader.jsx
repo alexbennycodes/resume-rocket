@@ -26,6 +26,7 @@ const FileUploader = () => {
   const [isUploading, setIsUploading] = useState();
 
   useEffect(() => {
+    localStorage.removeItem("pdf_text");
     if (acceptedFiles.length > 0) handleFile();
   }, [acceptedFiles]);
 
@@ -42,7 +43,8 @@ const FileUploader = () => {
       const { success, data } = await response.json();
       if (success) {
         localStorage.setItem("pdf_text", JSON.stringify(data));
-        router.push("/analyse");
+        const date = new Date().valueOf();
+        router.push(`/analyse/${date}`);
       }
     } catch (error) {
       alert(error);
@@ -52,7 +54,7 @@ const FileUploader = () => {
   };
 
   return (
-    <div className="w-full h-[20rem] bg-background  rounded-xl border border-border/50 relative overflow-hidden">
+    <div className="w-full h-[20rem] bg-background  rounded-xl border border-primary/50 relative overflow-hidden">
       <div
         className={cn(
           "h-full w-full p-5 z-20 absolute  transition-all ease-in-out duration-300 hover:bg-primary/[0.1]",
@@ -62,7 +64,7 @@ const FileUploader = () => {
         <div
           {...getRootProps({
             className: cn(
-              "dropzone w-full h-full border border-dashed rounded-xl flex flex-col justify-center items-center",
+              "dropzone w-full h-full border border-2 border-dashed rounded-xl flex flex-col justify-center items-center",
               `${isFocused ? "border-blue-500" : ""}`,
               `${isDragAccept ? "border-blue-500" : ""}`,
               `${isDragReject ? "border-primary" : ""}`,
@@ -72,8 +74,8 @@ const FileUploader = () => {
         >
           <input {...getInputProps()} />
 
-          <div className="flex flex-col justify-center items-center ">
-            <FolderIcon width={75} height={75} />
+          <div className="flex flex-col justify-center items-center">
+            <FolderIcon width={75} height={75} className="text-primary" />
             {!isUploading ? (
               <>
                 {acceptedFiles.length > 0 ? (
@@ -119,7 +121,7 @@ const FolderIcon = (props) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g stroke="red" strokeWidth={1.5}>
+    <g stroke="currentColor" strokeWidth={1.5}>
       <path
         d="M12 17v-7m0 0l3 3m-3-3l-3 3"
         strokeLinecap="round"
