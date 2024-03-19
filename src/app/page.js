@@ -1,4 +1,4 @@
-import FileUpload from "@/components/FileUploader";
+import FileUploader from "@/components/FileUploader";
 
 export default function Home() {
   return (
@@ -21,7 +21,7 @@ export default function Home() {
           ever need.
         </h1>
         <div className="max-w-7xl mt-14 w-full">
-          <FileUpload />
+          <FileUploader />
         </div>
       </div>
     </main>

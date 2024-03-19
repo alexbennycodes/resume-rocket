@@ -8,21 +8,20 @@ import Link from "next/link";
 import Markdown from "react-markdown";
 import useSWR from "swr";
 
-const fetcher = async (args) => {
-  return fetch(args[0], {
-    method: "POST",
-    body: JSON.stringify({ pdf_data: args[1] }),
-  }).then((res) => res.json());
+const fetcher = async (...args) => {
+  return fetch(
+    ...args,
+    {
+      method: "POST",
+      body: JSON.stringify({ pdf_text: localStorage?.getItem("pdf_text") }),
+    },
+    { cache: "no-store" }
+  ).then((res) => res.json());
 };
 
 const Page = () => {
-  const { data, error, isLoading } = useSWR(
-    ["/api/analyse", localStorage?.getItem("pdf_text") || ""],
-    fetcher
-  );
+  const { data, error, isLoading } = useSWR("/api/analyse", fetcher);
 
-  if (error || !data?.success)
-    return <div>Error: {error?.message || data?.message}</div>;
   if (isLoading)
     return (
       <>
@@ -43,6 +42,9 @@ const Page = () => {
         </div>
       </>
     );
+
+  if (error || !data?.success)
+    return <div>Error: {error?.message || data?.message}</div>;
 
   return (
     <>

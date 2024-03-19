@@ -20,6 +20,27 @@ export async function POST(req) {
       content: `<"${pdfText}">`,
     };
 
+    const isResume = await Hf.textGeneration({
+      model,
+      inputs: experimental_buildOpenAssistantPrompt([
+        base,
+        {
+          role: "user",
+          content: "Is this document a resume, just answer with YES or NO",
+        },
+      ]),
+      parameters: {
+        max_new_tokens: 1024,
+        typical_p: 0.2,
+        repetition_penalty: 1,
+        truncate: 1000,
+        return_full_text: false,
+      },
+    });
+
+    if (isResume.generated_text.slice(0, 2).toLowerCase() === "no")
+      return NextResponse.json({ message: "Not a valid resume", status: 500 });
+
     const goodResp = await Hf.textGeneration({
       model,
       inputs: experimental_buildOpenAssistantPrompt([
@@ -33,11 +54,6 @@ export async function POST(req) {
           role: "user",
           content: `Please ensure that the text below is properly formatted in markdown with appropriate indentation, spacing, and hierarchy. The heading should be in h2 tag and should read "What's good". Don't give the output in code block`,
         },
-        // {
-        //   role: "user",
-        //   content:
-        //     "the response should be in nicely formatted markdown format with proper indentation and spacing and correct hierarchy with heading as h2 tag `What's good`",
-        // },
       ]),
       parameters: {
         max_new_tokens: 1024,
@@ -148,3 +164,5 @@ export async function POST(req) {
     );
   }
 }
+
+export const dynamic = "force-dynamic";

@@ -3,10 +3,10 @@
 import { cn } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
-const FileUpload = () => {
+const FileUploader = () => {
   const {
     getRootProps,
     getInputProps,
@@ -17,9 +17,13 @@ const FileUpload = () => {
   } = useDropzone({
     noKeyboard: true,
     maxFiles: 1,
+    accept: {
+      pdf: [".pdf"],
+    },
   });
 
   const router = useRouter();
+  const [isUploading, setIsUploading] = useState();
 
   useEffect(() => {
     if (acceptedFiles.length > 0) handleFile();
@@ -28,6 +32,8 @@ const FileUpload = () => {
   const handleFile = async () => {
     const formData = new FormData();
     formData.append("file", acceptedFiles[0]);
+    setIsUploading(true);
+    localStorage.removeItem("pdf_text");
     try {
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -40,6 +46,8 @@ const FileUpload = () => {
       }
     } catch (error) {
       alert(error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -66,19 +74,34 @@ const FileUpload = () => {
 
           <div className="flex flex-col justify-center items-center ">
             <FolderIcon width={75} height={75} />
-            {acceptedFiles.length > 0 ? (
-              <div className="my-4 flex items-center justify-center gap-3">
-                <p className="text-sm md:text-base">{acceptedFiles[0]?.path}</p>
-                <RefreshCw className="h-5 w-5" />
-              </div>
+            {!isUploading ? (
+              <>
+                {acceptedFiles.length > 0 ? (
+                  <div className="my-4 flex items-center justify-center gap-3">
+                    <p className="text-sm md:text-base">
+                      {acceptedFiles[0]?.path}
+                    </p>
+                    <RefreshCw className="h-5 w-5" />
+                  </div>
+                ) : (
+                  <p className="my-4 text-sm md:text-base">
+                    Drag and Drop your resume here
+                  </p>
+                )}
+                <p className="pt-4 text-xs font-medium leading-5 text-muted-foreground lg:text-sm">
+                  Must be in .pdf format, as its better for ATS Compatibility.
+                </p>
+              </>
             ) : (
-              <p className="my-4 text-sm md:text-base">
-                Drag and Drop your resume here
-              </p>
+              <>
+                <p className="my-4 text-sm md:text-base">
+                  Uploding your resume
+                </p>
+                <p className="pt-4 text-xs font-medium leading-5 text-muted-foreground lg:text-sm">
+                  Must be in .pdf format, as its better for ATS Compatibility.
+                </p>
+              </>
             )}
-            <p className="pt-4 text-xs font-medium leading-5 text-muted-foreground lg:text-sm">
-              Must be in .pdf format, as its better for ATS Compatibility.
-            </p>
           </div>
         </div>
       </div>
@@ -87,7 +110,7 @@ const FileUpload = () => {
   );
 };
 
-export default FileUpload;
+export default FileUploader;
 
 const FolderIcon = (props) => (
   <svg
